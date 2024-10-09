@@ -1,20 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Home = () => {
   const [flights, setFlights] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [source, setSource] = useState('');
   const [destination, setDestination] = useState('');
+  const [date, setDate] = useState(''); 
   const navigate = useNavigate();
 
   const fetchFlights = async () => {
     try {
       setLoading(true);
       const response = await axios.get(`http://localhost:5000/api/flights`, {
-        params: { source, destination },
+        params: { source, destination, date },
       });
       setFlights(response.data);
     } catch (err) {
@@ -31,7 +32,7 @@ const Home = () => {
 
   const handleBookFlight = async (flightId) => {
     try {
-      const token = localStorage.getItem('token'); 
+      const token = localStorage.getItem('token');
       const response = await axios.post(
         'http://localhost:5000/api/customers/book-flight',
         { flightId },
@@ -46,10 +47,13 @@ const Home = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token'); 
-    navigate('/login'); 
+    localStorage.removeItem('token');
+    navigate('/login');
   };
 
+  const handleViewBookings = () => {
+    navigate('/bookings'); 
+  };
 
   return (
     <div>
@@ -63,6 +67,7 @@ const Home = () => {
         </Link>
         <button onClick={handleLogout}>Logout</button>
       </nav>
+
       <form onSubmit={handleSearch}>
         <select value={source} onChange={(e) => setSource(e.target.value)} required>
           <option value="">Select Source</option>
@@ -82,6 +87,13 @@ const Home = () => {
           <option value="Hyderabad">Hyderabad</option>
           <option value="Kolkata">Kolkata</option>
         </select>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          placeholder="Flight Date"
+          required
+        />
         <button type="submit">Search Flights</button>
       </form>
 
@@ -91,6 +103,7 @@ const Home = () => {
         {flights.map((flight) => (
           <li key={flight._id}>
             <p>
+              Flight: {flight.flightname} <br /> 
               {flight.source} to {flight.destination} <br />
               Departure: {new Date(flight.departureTime).toLocaleString()} <br />
               Arrival: {new Date(flight.arrivalTime).toLocaleString()} <br />
@@ -100,6 +113,8 @@ const Home = () => {
           </li>
         ))}
       </ul>
+
+      <button onClick={handleViewBookings}>View Your Bookings</button>
     </div>
   );
 };
