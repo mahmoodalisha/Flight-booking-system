@@ -25,6 +25,19 @@ const Bookings = () => {
     fetchBookings();
   }, []);
 
+  const handleCancelBooking = async (bookingId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:5000/api/customers/bookings/${bookingId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Update the bookings state to remove the canceled booking
+      setBookings((prevBookings) => prevBookings.filter((booking) => booking._id !== bookingId));
+    } catch (err) {
+      setError('Error canceling booking');
+    }
+  };
+
   return (
     <div>
       <h1>Your Previous Bookings</h1>
@@ -32,13 +45,14 @@ const Bookings = () => {
       {error && <p>{error}</p>}
       <ul>
         {bookings.map((booking) => (
-          <li key={booking._id}>
+          <li key={`${booking._id}-${booking.flightId}`}>
             <p>
               Flight ID: {booking.flightId} <br />
               Flight Name: {booking.flightname} <br />
               Source: {booking.source} <br />
               Destination: {booking.destination} <br />
-              Date: {new Date(booking.date).toLocaleDateString()}
+              Date: {new Date(booking.date).toLocaleDateString()} <br />
+              <button onClick={() => handleCancelBooking(booking._id)}>Cancel Booking</button>
             </p>
           </li>
         ))}
